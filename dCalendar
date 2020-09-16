@@ -1,0 +1,15 @@
+let
+    Source = fFluxo[Data Lançamento], //Traz os valores de data da fonte. Utilizado como referência no restante do código
+    Custom1 = List.Dates(List.Min(Source),Number.From(List.Max(Source)-List.Min(Source))+1,#duration(1,0,0,0)),
+    #"Converted to Table" = Table.FromList(Custom1, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"Column1", type date}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"Column1", "DATA"}}),
+    #"Inserted Year" = Table.AddColumn(#"Renamed Columns", "Year", each Date.Year([DATA]), Int64.Type),
+    #"Inserted Week of Year" = Table.AddColumn(#"Inserted Year", "Week of Year", each Date.WeekOfYear([DATA]), Int64.Type),
+    #"Inserted Day" = Table.AddColumn(#"Inserted Week of Year", "Day", each Date.Day([DATA]), Int64.Type),
+    #"Inserted Month" = Table.AddColumn(#"Inserted Day", "Month", each Date.Month([DATA]), Int64.Type),
+    #"Reordered Columns" = Table.ReorderColumns(#"Inserted Month",{"DATA", "Week of Year", "Year", "Month", "Day"}),
+    #"Inserted Month Name" = Table.AddColumn(#"Reordered Columns", "Month Name", each Date.MonthName([DATA]), type text),
+    #"Inserted First Characters" = Table.AddColumn(#"Inserted Month Name", "First Characters", each Text.Start([Month Name], 3), type text)
+in
+    #"Inserted First Characters"
